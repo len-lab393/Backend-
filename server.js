@@ -1,24 +1,20 @@
+require("dotenv").config();
 const express = require("express");
-const { Pool } = require("pg");
+const cors = require("cors");
+
+const paymentRoutes = require("./routes/payment");
 
 const app = express();
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+app.use(cors());
+app.use(express.json());
+
+app.use("/payment", paymentRoutes);
+
+app.get("/", (req,res)=>{
+  res.send("Backend running");
 });
 
-app.get("/users", async (req, res) => {
-  const result = await pool.query("SELECT NOW()");
-  res.json(result.rows);
+app.listen(process.env.PORT || 5000, ()=>{
+  console.log("Server running");
 });
-
-app.listen(3000);
-const db = require("./database");
-
-db.run(`
-CREATE TABLE IF NOT EXISTS users (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  email TEXT UNIQUE,
-  password TEXT
-)
-`);
