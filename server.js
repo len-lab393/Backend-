@@ -13,3 +13,12 @@ app.get("/users", async (req, res) => {
 });
 
 app.listen(3000);
+const db = require("./database");
+
+db.run(`
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT UNIQUE,
+  password TEXT
+)
+`);
