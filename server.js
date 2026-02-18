@@ -4,26 +4,30 @@ const bodyParser = require("body-parser");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// read form data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// TEST ROUTE (check backend running)
+// Test route
 app.get("/", (req, res) => {
   res.send("Backend is running");
 });
 
 // LOGIN ROUTE
 app.post("/login", (req, res) => {
-  const { username, password } = req.body;
+  const username = req.body.username;
+  const password = req.body.password;
 
-  console.log("Login attempt:", username, password);
+  console.log("Username:", username);
+  console.log("Password:", password);
 
-  // TEMP FAKE LOGIN (we add database later)
+  // TEMP LOGIN
   if (username === "admin" && password === "1234") {
-    res.send("Login successful");
-    // later we redirect to dashboard
-    // res.redirect("https://yourfrontend.com/dashboard.html");
+    
+    // redirect to dashboard
+    return res.redirect(
+      "https://junioremperor54-tech.github.io/UK-Worldwide-escorts/dashboard.html"
+    );
+
   } else {
     res.send("Invalid username or password");
   }
