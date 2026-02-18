@@ -1,23 +1,26 @@
 const express = require("express");
 const router = express.Router();
-const { simulatePayment } = require("../mpesa");
+const { stkPush } = require("../mpesa");
 
+// initiate payment
 router.post("/pay", async (req,res)=>{
   const { phone, amount } = req.body;
 
   if(!phone || !amount)
-    return res.json({error:"Missing details"});
+    return res.json({error:"Missing phone or amount"});
 
-  const result = await simulatePayment(phone, amount);
+  const result = await stkPush(phone, amount);
 
-  if(result.success){
-    return res.json({
-      paid:true,
-      unlockContact:true
-    });
-  }
+  res.json(result);
+});
 
-  res.json({paid:false});
+// mpesa callback
+router.post("/callback",(req,res)=>{
+  console.log("MPESA CALLBACK:", JSON.stringify(req.body,null,2));
+
+  // here you unlock subscription, save payment, etc
+
+  res.json({ResultCode:0,ResultDesc:"Accepted"});
 });
 
 module.exports = router;
