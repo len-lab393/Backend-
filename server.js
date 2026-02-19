@@ -6,6 +6,8 @@ const fs = require("fs")
 const app = express()
 app.use(cors())
 app.use(express.json())
+const paymentRoutes = require("./routes/payment"); 
+app.use("/payment", paymentRoutes);
 
 const PORT = process.env.PORT || 3000
 
