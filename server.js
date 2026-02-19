@@ -4,53 +4,68 @@ const cors = require("cors")
 const fs = require("fs")
 
 const app = express()
-
 app.use(cors())
 app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
 
-// ===== Railway PORT FIX =====
 const PORT = process.env.PORT || 3000
 
-
-// ===== health route (check backend running) =====
+// ===== health check =====
 app.get("/", (req, res) => {
-  res.send("Backend running 🚀")
+  res.send("Backend running")
 })
 
-
-// ===== create users file =====
+// ===== users file =====
 if (!fs.existsSync("users.json")) {
   fs.writeFileSync("users.json", "[]")
 }
 
-
 // ===== REGISTER =====
 app.post("/register", (req, res) => {
-  const { username, password } = req.body
+  const { email, password } = req.body
+
+  if (!email || !password)
+    return res.json({ success:false, msg:"Fill all fields" })
 
   const users = JSON.parse(fs.readFileSync("users.json"))
 
-  const exists = users.find(u => u.username === username)
+  if (users.find(u => u.email === email))
+    return res.json({ success:false, msg:"Email exists" })
 
-  if (exists) return res.send("User already exists")
-
-  users.push({ username, password })
+  users.push({ email, password, plan:"none" })
   fs.writeFileSync("users.json", JSON.stringify(users))
 
-  res.redirect("https://junioremperor54-tech.github.io/UK-Worldwide-escorts/login.html")
+  res.json({ success:true })
 })
 
+// ===== LOGIN =====
 app.post("/login", (req, res) => {
-  const { username, password } = req.body
+  const { email, password } = req.body
 
   const users = JSON.parse(fs.readFileSync("users.json"))
 
   const user = users.find(
-    u => u.username === username && u.password === password
+    u => u.email === email && u.password === password
   )
 
-  if (!user) return res.send("Invalid username or password")
+  if (!user)
+    return res.json({ success:false, msg:"Invalid login" })
 
-  res.send("success")
+  res.json({ success:true, plan:user.plan })
 })
+
+// ===== BUY PLAN (simulate payment) =====
+app.post("/buy", (req, res) => {
+  const { email, plan } = req.body
+
+  const users = JSON.parse(fs.readFileSync("users.json"))
+
+  const user = users.find(u => u.email === email)
+  if (!user) return res.json({ success:false })
+
+  user.plan = plan
+  fs.writeFileSync("users.json", JSON.stringify(users))
+
+  res.json({ success:true })
+})
+
+app.listen(PORT, () => console.log("Running", PORT))
