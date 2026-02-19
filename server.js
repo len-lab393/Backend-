@@ -41,8 +41,6 @@ app.post("/register", (req, res) => {
   res.redirect("https://junioremperor54-tech.github.io/UK-Worldwide-escorts/login.html")
 })
 
-
-// ===== LOGIN =====
 app.post("/login", (req, res) => {
   const { username, password } = req.body
 
@@ -54,11 +52,5 @@ app.post("/login", (req, res) => {
 
   if (!user) return res.send("Invalid username or password")
 
-  res.redirect("https://junioremperor54-tech.github.io/UK-Worldwide-escorts/dashboard.html")
-})
-
-
-// ===== start server =====
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT)
+  res.send("success")
 })
