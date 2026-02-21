@@ -34,3 +34,31 @@ res.send("Payment request sent to phone")
 })
 
 }
+// mpesa callback
+app.post("/callback",(req,res)=>{
+
+let escorts = JSON.parse(fs.readFileSync("database.json"))
+
+let escort = escorts.find(e=>e.pendingPlan)
+
+if(!escort) return res.send("No pending payment")
+
+const plans = {
+daily:2,
+weekly:7,
+monthly:30
+}
+
+escort.paid = true
+escort.approved = true
+
+let days = plans[escort.pendingPlan]
+escort.expiry = Date.now() + days*24*60*60*1000
+
+escort.pendingPlan = null
+
+fs.writeFileSync("database.json", JSON.stringify(escorts,null,2))
+
+res.send("OK")
+
+})
