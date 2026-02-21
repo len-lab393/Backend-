@@ -34,7 +34,10 @@ if(!escort) return res.send("Escort not found")
 if(!escort.approved){
 return res.send("Profile pending approval")
 }
-
+if(escort.expiry && Date.now() > escort.expiry){
+escort.approved = false
+escort.paid = false
+                       }
 res.send(`
 <h1>${escort.name}</h1>
 Age: ${escort.age}<br>
