@@ -95,3 +95,33 @@ res.send("callback error")
 }
 
 })
+const axios = require("axios");
+
+async function stkPush(phone, amount) {
+
+  const response = await axios.post(
+    "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+    {
+      BusinessShortCode: process.env.SHORTCODE,
+      Password: process.env.PASSWORD,
+      Timestamp: process.env.TIMESTAMP,
+      TransactionType: "CustomerPayBillOnline",
+      Amount: amount,
+      PartyA: phone,
+      PartyB: process.env.SHORTCODE,
+      PhoneNumber: phone,
+      CallBackURL: process.env.CALLBACK_URL,
+      AccountReference: "Escort Unlock",
+      TransactionDesc: "Payment"
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.ACCESS_TOKEN}`
+      }
+    }
+  );
+
+  return response.data;
+}
+
+module.exports = stkPush;
