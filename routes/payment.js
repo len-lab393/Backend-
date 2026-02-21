@@ -1,26 +1,36 @@
-const express = require("express");
-const router = express.Router();
-const { stkPush } = require("../mpesa");
+const fs = require("fs")
+const {stkPush} = require("../mpesa")
 
-// initiate payment
-router.post("/pay", async (req,res)=>{
-  const { phone, amount } = req.body;
+module.exports = (app)=>{
 
-  if(!phone || !amount)
-    return res.json({error:"Missing phone or amount"});
+// plan prices
+const plans = {
+daily:{amount:150,duration:2},
+weekly:{amount:400,duration:7},
+monthly:{amount:1200,duration:30}
+}
 
-  const result = await stkPush(phone, amount);
 
-  res.json(result);
-});
+// request payment
+app.post("/pay/:id",(req,res)=>{
 
-// mpesa callback
-router.post("/callback",(req,res)=>{
-  console.log("MPESA CALLBACK:", JSON.stringify(req.body,null,2));
+let escorts = JSON.parse(fs.readFileSync("database.json"))
+let escort = escorts.find(e=>e.id == req.params.id)
 
-  // here you unlock subscription, save payment, etc
+if(!escort) return res.send("Escort not found")
 
-  res.json({ResultCode:0,ResultDesc:"Accepted"});
-});
+let plan = req.body.plan
+let phone = req.body.phone
 
-module.exports = router;
+if(!plans[plan]) return res.send("Invalid plan")
+
+stkPush(phone,plans[plan].amount)
+
+escort.pendingPlan = plan
+fs.writeFileSync("database.json", JSON.stringify(escorts,null,2))
+
+res.send("Payment request sent to phone")
+
+})
+
+}
