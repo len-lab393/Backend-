@@ -2,7 +2,9 @@ const fs = require("fs")
 
 module.exports = (app)=>{
 
-// view all escorts
+// =======================
+// VIEW ALL ESCORTS
+// =======================
 app.get("/admin",(req,res)=>{
 
 let escorts = JSON.parse(fs.readFileSync("database.json"))
@@ -23,7 +25,9 @@ res.send(html)
 })
 
 
-// approve escort
+// =======================
+// APPROVE ESCORT
+// =======================
 app.post("/admin/approve/:id",(req,res)=>{
 
 let escorts = JSON.parse(fs.readFileSync("database.json"))
@@ -32,12 +36,15 @@ let escort = escorts.find(e=>e.id == req.params.id)
 if(escort) escort.approved = true
 
 fs.writeFileSync("database.json", JSON.stringify(escorts,null,2))
+
 res.redirect("/admin")
 
 })
 
-  }
+
+// =======================
 // ADMIN EARNINGS DASHBOARD
+// =======================
 app.get("/admin/earnings",(req,res)=>{
 
 let escorts = JSON.parse(fs.readFileSync("database.json"))
@@ -51,4 +58,7 @@ if(e.lastPayment) total += e.lastPayment
 res.send(`
 <h1>Total Earnings: KSh ${total}</h1>
 `)
+
 })
+
+  }
