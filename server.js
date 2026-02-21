@@ -12,6 +12,9 @@ require("./routes/escorts")(app)
 require("./routes/admin")(app)
 require("./routes/payment")(app)
 
-app.listen(3000, ()=>{
-console.log("Server running on port 3000")
+// railway port
+const PORT = process.env.PORT || 3000
+
+app.listen(PORT, ()=>{
+console.log("Server running on port " + PORT)
 })
