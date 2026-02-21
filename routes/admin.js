@@ -37,3 +37,18 @@ res.redirect("/admin")
 })
 
   }
+// ADMIN EARNINGS DASHBOARD
+app.get("/admin/earnings",(req,res)=>{
+
+let escorts = JSON.parse(fs.readFileSync("database.json"))
+
+let total = 0
+
+escorts.forEach(e=>{
+if(e.lastPayment) total += e.lastPayment
+})
+
+res.send(`
+<h1>Total Earnings: KSh ${total}</h1>
+`)
+})
