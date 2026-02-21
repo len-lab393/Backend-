@@ -57,3 +57,15 @@ ${escort.paid
 })
 
   }
+app.get("/escort/:id/status",(req,res)=>{
+
+let escorts = JSON.parse(fs.readFileSync("database.json"))
+let escort = escorts.find(e=>e.id == req.params.id)
+
+if(!escort) return res.json({paid:false})
+
+res.json({
+paid:escort.paid || false
+})
+
+})
