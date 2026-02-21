@@ -56,3 +56,42 @@ headers:{Authorization:`Bearer ${token}`}
 }
 
 module.exports = {stkPush}
+// MPESA CALLBACK
+app.post("/callback",(req,res)=>{
+
+try{
+
+let escorts = JSON.parse(fs.readFileSync("database.json"))
+
+let escort = escorts.find(e => e.pendingPlan)
+if(!escort) return res.send("No pending payment")
+
+const plans = {
+two_days:{amount:150,days:2},
+weekly:{amount:400,days:7},
+monthly:{amount:1200,days:30}
+}
+
+let planData = plans[escort.pendingPlan]
+
+// activate escort
+escort.paid = true
+escort.approved = true
+escort.plan = escort.pendingPlan
+escort.expiry = Date.now() + planData.days*24*60*60*1000
+
+// store earnings
+escort.lastPayment = planData.amount
+
+escort.pendingPlan = null
+
+fs.writeFileSync("database.json", JSON.stringify(escorts,null,2))
+
+res.send("OK")
+
+}catch(err){
+console.log(err)
+res.send("callback error")
+}
+
+})
