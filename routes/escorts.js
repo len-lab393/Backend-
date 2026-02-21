@@ -46,3 +46,52 @@ res.send(`
 })
 
   }
+const express = require("express");
+const router = express.Router();
+const multer = require("multer");
+const fs = require("fs");
+
+// storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
+// escort registration
+router.post("/register", upload.single("photo"), (req, res) => {
+
+  const { name, price, phone } = req.body;
+  const image = req.file.filename;
+
+  const page = `
+  <html>
+  <body>
+  <h1>${name}</h1>
+  <img src="/uploads/${image}" width="300"/>
+  <p>Price: ${price}</p>
+
+  <button onclick="unlock('${phone}')">Unlock Contact</button>
+
+  <script>
+  function unlock(phone){
+    window.location = "/payment.html?phone=" + phone;
+  }
+  </script>
+  </body>
+  </html>
+  `;
+
+  fs.writeFileSync(`public/escorts/${name}.html`, page);
+
+  res.json({
+    message: "Profile submitted for approval"
+  });
+});
+
+module.exports = router;
