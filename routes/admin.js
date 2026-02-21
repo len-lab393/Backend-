@@ -31,8 +31,7 @@ let escorts = JSON.parse(fs.readFileSync("database.json"))
 let escort = escorts.find(e=>e.id == req.params.id)
 if(escort) escort.approved = true
 
-fs.writeFile Yes you likely meant to writeFileSync("database.json", JSON.stringify(escorts,null,2))
-
+fs.writeFileSync("database.json", JSON.stringify(escorts,null,2))
 res.redirect("/admin")
 
 })
