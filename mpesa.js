@@ -1,6 +1,7 @@
 require("dotenv").config()
 const axios = require("axios")
 
+// GET ACCESS TOKEN
 async function getAccessToken(){
 
 const auth = Buffer.from(
@@ -17,6 +18,7 @@ return res.data.access_token
 }
 
 
+// SEND STK PUSH
 async function stkPush(phone,amount){
 
 const token = await getAccessToken()
