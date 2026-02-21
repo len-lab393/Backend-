@@ -1,64 +1,43 @@
-const fs = require("fs")
-const {stkPush} = require("../mpesa")
+const fs = require("fs");
 
-module.exports = (app)=>{
+module.exports = (app) => {
 
-// plan prices
-const plans = {
-daily:{amount:150,duration:2},
-weekly:{amount:400,duration:7},
-monthly:{amount:1200,duration:30}
-}
+  // payment plans
+  const plans = {
+    daily: { amount: 150, days: 2 },
+    weekly: { amount: 400, days: 7 },
+    monthly: { amount: 1200, days: 30 }
+  };
 
+  // request payment (SIMULATED FOR NOW)
+  app.post("/pay/:id", (req, res) => {
+    try {
+      const escorts = JSON.parse(fs.readFileSync("database.json"));
+      const escort = escorts.find(e => e.id == req.params.id);
 
-// request payment
-app.post("/pay/:id",(req,res)=>{
+      if (!escort) {
+        return res.status(404).send("Escort not found");
+      }
 
-let escorts = JSON.parse(fs.readFileSync("database.json"))
-let escort = escorts.find(e=>e.id == req.params.id)
+      const plan = req.body.plan;
 
-if(!escort) return res.send("Escort not found")
+      if (!plans[plan]) {
+        return res.status(400).send("Invalid plan");
+      }
 
-let plan = req.body.plan
-let phone = req.body.phone
+      escort.paid = true;
+      escort.approved = true;
+      escort.plan = plan;
+      escort.expiry =
+        Date.now() + plans[plan].days * 24 * 60 * 60 * 1000;
 
-if(!plans[plan]) return res.send("Invalid plan")
+      fs.writeFileSync("database.json", JSON.stringify(escorts, null, 2));
 
-stkPush(phone,plans[plan].amount)
+      res.send("Payment successful. Profile activated.");
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Payment error");
+    }
+  });
 
-escort.pendingPlan = plan
-fs.writeFileSync("database.json", JSON.stringify(escorts,null,2))
-
-res.send("Payment request sent to phone")
-
-})
-
-}
-// mpesa callback
-app.post("/callback",(req,res)=>{
-
-let escorts = JSON.parse(fs.readFileSync("database.json"))
-
-let escort = escorts.find(e=>e.pendingPlan)
-
-if(!escort) return res.send("No pending payment")
-
-const plans = {
-daily:2,
-weekly:7,
-monthly:30
-}
-
-escort.paid = true
-escort.approved = true
-
-let days = plans[escort.pendingPlan]
-escort.expiry = Date.now() + days*24*60*60*1000
-
-escort.pendingPlan = null
-
-fs.writeFileSync("database.json", JSON.stringify(escorts,null,2))
-
-res.send("OK")
-
-})
+};
