@@ -10,6 +10,7 @@ app.use(bodyParser.urlencoded({extended:true}))
 require("./routes/register")(app)
 require("./routes/escorts")(app)
 require("./routes/admin")(app)
+require("./routes/payment")(app)
 
 app.listen(3000, ()=>{
 console.log("Server running on port 3000")
