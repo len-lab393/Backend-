@@ -21,5 +21,5 @@ app.post("/callback", (req, res) => {
 
   res.json({ ResultCode: 0, ResultDesc: "Success" });
 });
-
-app.listen(3000, () => console.log("Running"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log("Running on", PORT));
