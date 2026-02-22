@@ -1,25 +1,25 @@
-const express = require("express")
-const fs = require("fs")
-require("dotenv").config()
+const express = require("express");
+const { stkPush } = require("./mpesa");
 
-const app = express()
+const app = express();
+app.use(express.json());
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.post("/pay", async (req, res) => {
+  try {
+    const { phone, amount } = req.body;
+    const response = await stkPush(phone, amount);
+    res.json(response.data);
+  } catch (err) {
+    res.status(500).json(err.message);
+  }
+});
 
-// create database if missing
-if (!fs.existsSync("database.json")) {
-fs.writeFileSync("database.json", "[]")
-}
+app.post("/callback", (req, res) => {
+  console.log("Payment confirmed:", req.body);
 
-// load routes
-require("./routes/escort")(app)
-require("./routes/payment")(app)
-require("./routes/admin")(app)
+  // unlock profile here later
 
-// start server
-const PORT = process.env.PORT || 3000
+  res.json({ ResultCode: 0, ResultDesc: "Success" });
+});
 
-app.listen(PORT, () => {
-console.log("Server running on port " + PORT)
-})
+app.listen(3000, () => console.log("Running"));
