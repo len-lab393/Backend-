@@ -1,97 +1,53 @@
 const fs = require("fs")
 
-module.exports = (app)=>{
+module.exports = (app) => {
 
-// =======================
-// VIEW APPROVED ESCORTS LIST
-// =======================
-app.get("/escorts",(req,res)=>{
+// GET ALL APPROVED ESCORTS
+app.get("/escorts", (req, res) => {
 
 let escorts = JSON.parse(fs.readFileSync("database.json"))
 
 let approved = escorts.filter(e => e.approved === true)
 
-let html = approved.map(e=>`
-<div style="border:1px solid #000;padding:10px;margin:10px">
-<h3>${e.name}</h3>
-<p>${e.location}</p>
-<a href="/escort/${e.id}">View Profile</a>
-</div>
-`).join("")
-
-res.send(html)
+res.json(approved)
 
 })
 
 
-// =======================
-// SINGLE ESCORT PROFILE PAGE
-// =======================
-app.get("/escort/:id",(req,res)=>{
+// REGISTER ESCORT (AUTO PAGE GENERATOR)
+app.post("/escort/register", (req, res) => {
 
 let escorts = JSON.parse(fs.readFileSync("database.json"))
 
-let escort = escorts.find(e=>e.id == req.params.id)
+const newEscort = {
+id: Date.now(),
+name: req.body.name,
+location: req.body.location,
+approved: false,
+contactUnlocked: false,
+photos: []
+}
 
-if(!escort) return res.send("Escort not found")
+escorts.push(newEscort)
 
-res.send(`
-<h1>${escort.name}</h1>
-<p>${escort.location}</p>
+fs.writeFileSync("database.json", JSON.stringify(escorts, null, 2))
 
-<h3>Contact Locked 🔒</h3>
-<p>Pay to unlock contact</p>
-`)
+res.send("Profile submitted for approval")
 
 })
 
-  }
-const express = require("express");
-const router = express.Router();
-const multer = require("multer");
-const fs = require("fs");
 
-// storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/");
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
-  }
-});
+// SINGLE PROFILE
+app.get("/escort/:id", (req, res) => {
 
-const upload = multer({ storage });
+let escorts = JSON.parse(fs.readFileSync("database.json"))
 
-// escort registration
-router.post("/register", upload.single("photo"), (req, res) => {
+let escort = escorts.find(e => e.id == req.params.id)
 
-  const { name, price, phone } = req.body;
-  const image = req.file.filename;
+if (!escort) return res.send("Escort not found")
 
-  const page = `
-  <html>
-  <body>
-  <h1>${name}</h1>
-  <img src="/uploads/${image}" width="300"/>
-  <p>Price: ${price}</p>
+res.json(escort)
 
-  <button onclick="unlock('${phone}')">Unlock Contact</button>
+})
 
-  <script>
-  function unlock(phone){
-    window.location = "/payment.html?phone=" + phone;
-  }
-  </script>
-  </body>
-  </html>
-  `;
-
-  fs.writeFileSync(`public/escorts/${name}.html`, page);
-
-  res.json({
-    message: "Profile submitted for approval"
-  });
-});
-
-module.exports = router;
+}
