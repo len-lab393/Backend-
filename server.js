@@ -1,22 +1,25 @@
 const express = require("express")
-const bodyParser = require("body-parser")
+const fs = require("fs")
+require("dotenv").config()
 
 const app = express()
 
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended:true}))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-// routes
-require("./routes/register")(app)
-require("./routes/escorts")(app)
-require("./routes/admin")(app)
+// create database if missing
+if (!fs.existsSync("database.json")) {
+fs.writeFileSync("database.json", "[]")
+}
+
+// load routes
+require("./routes/escort")(app)
 require("./routes/payment")(app)
+require("./routes/admin")(app)
 
-// railway port
+// start server
 const PORT = process.env.PORT || 3000
 
-app.listen(PORT, ()=>{
+app.listen(PORT, () => {
 console.log("Server running on port " + PORT)
 })
-app.use("/escort", require("./routes/escort"));
-app.use("/uploads", express.static("uploads"));
