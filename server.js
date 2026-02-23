@@ -25,7 +25,11 @@ app.post("/pay", async (req, res) => {
 /* ----------- CALLBACK ROUTE ----------- */
 app.post("/callback", (req, res) => {
   console.log("Payment confirmed:", req.body);
-  res.json({ ResultCode: 0, ResultDesc: "Success" });
+
+  res.json({
+    message: "Payment received successfully",
+    data: req.body
+  });
 });
 
 /* ----------- VERY IMPORTANT FOR RAILWAY ----------- */
