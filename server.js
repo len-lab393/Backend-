@@ -1,3 +1,7 @@
+console.log("SERVER FILE LOADED");
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port", PORT);
+});
 require("dotenv").config();
 const express = require("express");
 const { stkPush } = require("./mpesa");
