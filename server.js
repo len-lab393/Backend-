@@ -1,3 +1,5 @@
+// temporary storage (later we use database)
+let activeUsers = {};
 require("dotenv").config();
 const express = require("express");
 const { stkPush } = require("./mpesa");
