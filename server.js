@@ -69,3 +69,5 @@ app.get("/check-access/:phone", (req, res) => {
     phone: phone
   });
 });
+const accessRoutes = require("./routes/access");
+app.use("/", accessRoutes);
