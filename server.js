@@ -1,5 +1,3 @@
-// temporary storage (later we use database)
-let activeUsers = {};
 require("dotenv").config();
 const express = require("express");
 const { stkPush } = require("./mpesa");
@@ -7,7 +5,10 @@ const { stkPush } = require("./mpesa");
 const app = express();
 app.use(express.json());
 
-/* ----------- HEALTH CHECK ROUTE ----------- */
+// temporary storage (later use database)
+let activeUsers = {};
+
+/* ----------- HEALTH CHECK ----------- */
 app.get("/", (req, res) => {
   res.send("Backend alive");
 });
@@ -28,27 +29,21 @@ app.post("/pay", async (req, res) => {
 app.post("/callback", (req, res) => {
   console.log("Payment confirmed:", req.body);
 
-  // example phone (later extract from mpesa response)
   const phone = "254708374149";
 
-  // unlock for 2 days (172800000 ms)
+  // unlock 2 days
   activeUsers[phone] = Date.now() + 172800000;
 
   res.json({ message: "Payment received & user unlocked" });
 });
 
-/* ----------- VERY IMPORTANT FOR RAILWAY ----------- */
-const PORT = process.env.PORT || 3000;
-
-/* bind to 0.0.0.0 so Railway can access it */
-app.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on port", PORT);
-});
+/* ----------- CHECK ACCESS ROUTE ----------- */
 app.get("/check-access/:phone", (req, res) => {
   const phone = req.params.phone;
 
-  if (!activeUsers[phone])
+  if (!activeUsers[phone]) {
     return res.json({ access: false });
+  }
 
   if (Date.now() > activeUsers[phone]) {
     delete activeUsers[phone];
@@ -57,17 +52,10 @@ app.get("/check-access/:phone", (req, res) => {
 
   res.json({ access: true });
 });
-app.get("/check-access/:phone", (req, res) => {
-  const phone = req.params.phone;
 
-  console.log("Checking access for:", phone);
+/* ----------- START SERVER ----------- */
+const PORT = process.env.PORT || 3000;
 
-  // TEMP TEST RESPONSE
-  res.json({
-    success: true,
-    message: "Access route working",
-    phone: phone
-  });
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("Server running on port", PORT);
 });
-const accessRoutes = require("./routes/access");
-app.use("/", accessRoutes);
