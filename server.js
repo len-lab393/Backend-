@@ -57,3 +57,15 @@ app.get("/check-access/:phone", (req, res) => {
 
   res.json({ access: true });
 });
+app.get("/check-access/:phone", (req, res) => {
+  const phone = req.params.phone;
+
+  console.log("Checking access for:", phone);
+
+  // TEMP TEST RESPONSE
+  res.json({
+    success: true,
+    message: "Access route working",
+    phone: phone
+  });
+});
