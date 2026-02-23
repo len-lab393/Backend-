@@ -44,3 +44,16 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log("Server running on port", PORT);
 });
+app.get("/check-access/:phone", (req, res) => {
+  const phone = req.params.phone;
+
+  if (!activeUsers[phone])
+    return res.json({ access: false });
+
+  if (Date.now() > activeUsers[phone]) {
+    delete activeUsers[phone];
+    return res.json({ access: false });
+  }
+
+  res.json({ access: true });
+});
