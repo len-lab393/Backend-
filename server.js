@@ -28,10 +28,13 @@ app.post("/pay", async (req, res) => {
 app.post("/callback", (req, res) => {
   console.log("Payment confirmed:", req.body);
 
-  res.json({
-    message: "Payment received successfully",
-    data: req.body
-  });
+  // example phone (later extract from mpesa response)
+  const phone = "254708374149";
+
+  // unlock for 2 days (172800000 ms)
+  activeUsers[phone] = Date.now() + 172800000;
+
+  res.json({ message: "Payment received & user unlocked" });
 });
 
 /* ----------- VERY IMPORTANT FOR RAILWAY ----------- */
