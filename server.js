@@ -170,7 +170,13 @@ app.post("/callback", (req, res) => {
 // ============================
 
 const PORT = process.env.PORT || 3000;
+// ============================
+// ADMIN DATA
+// ============================
 
+app.get("/admin-data", (req,res)=>{
+res.json(users);
+});
 app.listen(PORT, () => {
   console.log("Server started");
 });
