@@ -62,7 +62,26 @@ app.post("/register", (req, res) => {
 
   res.json({ message: "Registered successfully" });
 });
+app.post("/subscribe", async (req,res)=>{
 
+const { email, days } = req.body;
+
+const expiry = new Date();
+expiry.setDate(expiry.getDate() + days);
+
+await db.collection("escorts").updateOne(
+{ email },
+{
+$set:{
+active:true,
+subscription:days + "days",
+expiresAt:expiry
+}
+}
+);
+
+res.json({message:"Account published"});
+});
 // ============================
 // LOGIN
 // ============================
