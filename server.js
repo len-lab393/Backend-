@@ -18,6 +18,16 @@ console.log("Database connected");
 }
 
 start();
+async function expireAccounts(){
+
+const now = new Date();
+
+await db.collection("escorts").updateMany(
+{ expiresAt: { $lt: now } },
+{ $set:{ active:false } }
+);
+
+}
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
