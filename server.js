@@ -4,20 +4,30 @@ const { MongoClient } = require("mongodb");
 require("dotenv").config();
 
 const app = express();
+
 app.use(express.json());
 app.use(cors());
+
+/* ================= DATABASE CONNECTION ================= */
 
 const client = new MongoClient(process.env.MONGO_URL);
 
 let db;
 
 async function start(){
+try{
 await client.connect();
 db = client.db("escortDB");
 console.log("Database connected");
+}catch(err){
+console.log("DB connection error", err);
+}
 }
 
 start();
+
+/* ================= AUTO EXPIRE ACCOUNTS ================= */
+
 async function expireAccounts(){
 
 const now = new Date();
@@ -28,210 +38,25 @@ await db.collection("escorts").updateMany(
 );
 
 }
-require("dotenv").config();
-const express = require("express");
-const axios = require("axios");
 
-const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+/* ================= REGISTER ESCORT (FREE ACCOUNT) ================= */
+/* Account created but hidden until subscription */
 
-// ============================
-// TEMP DATABASE (memory)
-// ============================
-
-let users = [];
-
-// ============================
-// HOME TEST
-// ============================
-
-app.get("/", (req, res) => {
-  res.send("Backend running");
-});
-
-// ============================
-// REGISTER USER
-// ============================
-
-app.post("/register", (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password)
-    return res.status(400).json({ error: "Missing fields" });
-
-  const exists = users.find(u => u.email === email);
-  if (exists) return res.status(400).json({ error: "User exists" });
-
-  users.push({
-    email,
-    password,
-    plan: null,
-    membershipExpires: null
-  });
-
-  res.json({ message: "Registered successfully" });
-});
-app.post("/subscribe", async (req,res)=>{
-
-const { email, days } = req.body;
-
-const expiry = new Date();
-expiry.setDate(expiry.getDate() + days);
-
-await db.collection("escorts").updateOne(
-{ email },
-{
-$set:{
-active:true,
-subscription:days + "days",
-expiresAt:expiry
-}
-}
-);
-
-res.json({message:"Account published"});
-});
-// ============================
-// LOGIN
-// ============================
-
-app.post("/login", (req, res) => {
-  const { email, password } = req.body;
-
-  const user = users.find(u => u.email === email && u.password === password);
-
-  if (!user) return res.status(401).json({ error: "Invalid login" });
-
-  res.json({ message: "Login success", user });
-});
-
-// ============================
-// SHOW PLANS (frontend fetches this)
-// ============================
-
-app.get("/plans", (req, res) => {
-  res.json([
-    { name: "2 Days", price: 150, days: 2 },
-    { name: "Weekly", price: 400, days: 7 },
-    { name: "Monthly", price: 1200, days: 30 }
-  ]);
-});
-
-// ============================
-// CHECK MEMBERSHIP
-// ============================
-
-app.post("/check-membership", (req, res) => {
-  const { email } = req.body;
-  const user = users.find(u => u.email === email);
-
-  if (!user) return res.status(404).json({ error: "User not found" });
-
-  if (!user.plan || Date.now() > user.membershipExpires)
-    return res.json({ active: false });
-
-  res.json({ active: true, plan: user.plan });
-});
-
-// ============================
-// SAFARICOM MPESA CONFIG
-// ============================
-
-const SHORTCODE = process.env.SHORTCODE;
-const PASSKEY = process.env.PASSKEY;
-const CONSUMER_KEY = process.env.CONSUMER_KEY;
-const CONSUMER_SECRET = process.env.CONSUMER_SECRET;
-const CALLBACK_URL = process.env.CALLBACK_URL;
-
-// get token
-function getAccessToken() {
-  const auth = Buffer.from(`${CONSUMER_KEY}:${CONSUMER_SECRET}`).toString("base64");
-
-  return axios.get(
-    "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
-    { headers: { Authorization: `Basic ${auth}` } }
-  ).then(res => res.data.access_token);
-}
-
-// ============================
-// PAY → TRIGGER STK PUSH
-// ============================
-
-app.post("/pay", async (req, res) => {
-  const { phone, amount, email, days } = req.body;
-
-  try {
-    const token = await getAccessToken();
-
-    const timestamp = new Date()
-      .toISOString()
-      .replace(/[-T:.Z]/g, "")
-      .slice(0, 14);
-
-    const password = Buffer.from(
-      `${SHORTCODE}${PASSKEY}${timestamp}`
-    ).toString("base64");
-
-    await axios.post(
-      "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
-      {
-        BusinessShortCode: SHORTCODE,
-        Password: password,
-        Timestamp: timestamp,
-        TransactionType: "CustomerPayBillOnline",
-        Amount: amount,
-        PartyA: phone,
-        PartyB: SHORTCODE,
-        PhoneNumber: phone,
-        CallBackURL: CALLBACK_URL,
-        AccountReference: email,
-        TransactionDesc: "Membership Payment"
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    // TEMP: activate membership immediately (real system waits for callback)
-    const user = users.find(u => u.email === email);
-    if (user) {
-      user.plan = amount;
-      user.membershipExpires = Date.now() + days * 24 * 60 * 60 * 1000;
-    }
-
-    res.json({ message: "Payment request sent" });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ============================
-// CALLBACK (for real MPesa)
-// ============================
-
-app.post("/callback", (req, res) => {
-  console.log("MPesa result:", req.body);
-  res.sendStatus(200);
-});
-
-// ============================
-// START SERVER
-// ============================
-
-const PORT = process.env.PORT || 3000;
-// ============================
-// ADMIN DATA
-// ============================
-
-app.get("/admin-data", (req,res)=>{
-res.json(users);
-});
-app.listen(PORT, () => {
-  console.log("Server started");
-});
 app.post("/register", async (req,res)=>{
 
+try{
+
 const { email } = req.body;
+
+if(!email){
+return res.status(400).json({error:"Email required"});
+}
+
+const exists = await db.collection("escorts").findOne({email});
+
+if(exists){
+return res.json({message:"Account already exists"});
+}
 
 await db.collection("escorts").insertOne({
 email,
@@ -243,9 +68,9 @@ gender:"",
 phone:"",
 
 /* location */
-city:"Nairobi",     // fixed
-area:"",            // required later
-street:"",          // optional
+city:"Nairobi",  // fixed
+area:"",         // required later
+street:"",       // optional
 
 /* media */
 images:[],
@@ -259,5 +84,163 @@ expiresAt:null,
 createdAt:new Date()
 });
 
-res.json({message:"Account created"});
+res.json({message:"Account created. Subscribe to publish."});
+
+}catch(err){
+res.status(500).json({error:"Server error"});
+}
+
+});
+
+/* ================= SUBSCRIBE → ACTIVATE ACCOUNT ================= */
+/* days = 2 or 7 or 30 */
+
+app.post("/subscribe", async (req,res)=>{
+
+try{
+
+const { email, days } = req.body;
+
+if(!email || !days){
+return res.status(400).json({error:"Missing data"});
+}
+
+const expiry = new Date();
+expiry.setDate(expiry.getDate() + Number(days));
+
+await db.collection("escorts").updateOne(
+{ email },
+{
+$set:{
+active:true,
+subscription:days + "days",
+expiresAt:expiry
+}
+}
+);
+
+res.json({message:"Account published"});
+
+}catch(err){
+res.status(500).json({error:"Server error"});
+}
+
+});
+
+/* ================= UPDATE PROFILE (EDIT INFO) ================= */
+
+app.post("/update-profile", async (req,res)=>{
+
+try{
+
+const {
+email,
+name,
+age,
+gender,
+phone,
+area,
+street
+} = req.body;
+
+if(!email){
+return res.status(400).json({error:"Email required"});
+}
+
+/* require area */
+if(!area){
+return res.status(400).json({error:"Area required"});
+}
+
+await db.collection("escorts").updateOne(
+{ email },
+{
+$set:{
+name,
+age,
+gender,
+phone,
+area,
+street
+}
+}
+);
+
+res.json({message:"Profile updated"});
+
+}catch(err){
+res.status(500).json({error:"Server error"});
+}
+
+});
+
+/* ================= UPLOAD MEDIA ================= */
+/* images: 1–3 */
+/* videos: max 2 */
+
+app.post("/upload-media", async (req,res)=>{
+
+try{
+
+const { email, images = [], videos = [] } = req.body;
+
+if(!email){
+return res.status(400).json({error:"Email required"});
+}
+
+if(images.length < 1 || images.length > 3){
+return res.status(400).json({error:"1 to 3 images allowed"});
+}
+
+if(videos.length > 2){
+return res.status(400).json({error:"Max 2 videos allowed"});
+}
+
+await db.collection("escorts").updateOne(
+{ email },
+{ $set:{ images, videos } }
+);
+
+res.json({message:"Media uploaded"});
+
+}catch(err){
+res.status(500).json({error:"Server error"});
+}
+
+});
+
+/* ================= PUBLIC PROFILES ================= */
+/* visitors see only active escorts */
+
+app.get("/profiles", async (req,res)=>{
+
+try{
+
+await expireAccounts();
+
+const escorts = await db
+.collection("escorts")
+.find({active:true})
+.toArray();
+
+res.json(escorts);
+
+}catch(err){
+res.status(500).json({error:"Server error"});
+}
+
+});
+
+/* ================= TEST ROUTE ================= */
+
+app.get("/", (req,res)=>{
+res.send("API working");
+});
+
+/* ================= START SERVER ================= */
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, ()=>{
+console.log("Server running on port " + PORT);
 });
