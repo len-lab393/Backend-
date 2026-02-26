@@ -1,8 +1,9 @@
 const express = require("express");
 const cors = require("cors");
+app.use(cors());
 const { MongoClient } = require("mongodb");
 require("dotenv").config();
-
+npm install cors
 const app = express();
 
 app.use(express.json());
