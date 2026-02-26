@@ -200,3 +200,35 @@ res.json(users);
 app.listen(PORT, () => {
   console.log("Server started");
 });
+app.post("/register", async (req,res)=>{
+
+const { email } = req.body;
+
+await db.collection("escorts").insertOne({
+email,
+
+/* profile info */
+name:"",
+age:"",
+gender:"",
+phone:"",
+
+/* location */
+city:"Nairobi",     // fixed
+area:"",            // required later
+street:"",          // optional
+
+/* media */
+images:[],
+videos:[],
+
+/* subscription */
+active:false,
+subscription:null,
+expiresAt:null,
+
+createdAt:new Date()
+});
+
+res.json({message:"Account created"});
+});
