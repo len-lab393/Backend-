@@ -1,12 +1,26 @@
-const express = require("express");
-const cors = require("cors");
-app.use(cors());
-const { MongoClient } = require("mongodb");
-require("dotenv").config();
-const app = express();
+// ===== IMPORTS =====
+require("dotenv").config()
+const express = require("express")
+const cors = require("cors")
 
-app.use(express.json());
-app.use(cors());
+// ===== INIT APP =====
+const app = express()
+
+// ===== MIDDLEWARE =====
+app.use(cors())
+app.use(express.json())
+
+// ===== TEST ROUTE =====
+app.get("/", (req, res) => {
+  res.send("API working 🚀")
+})
+
+// ===== START SERVER =====
+const PORT = process.env.PORT || 5000
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT)
+})
 
 /* ================= DATABASE CONNECTION ================= */
 
