@@ -18,9 +18,32 @@ app.get("/", (req, res) => {
 /* ================= DATABASE CONNECTION ================= */
 
 const client = new MongoClient(process.env.MONGO_URL);
+require("dotenv").config()
+const express = require("express")
+const cors = require("cors")
 
+const { MongoClient } = require("mongodb") // ← ADD THIS
 let db;
+const app = express()
 
+app.use(cors())
+app.use(express.json())
+
+// ===== MONGODB CONNECTION =====
+const client = new MongoClient(process.env.MONGO_URI)
+let db
+
+async function connectDB() {
+  try {
+    await client.connect()
+    db = client.db("escortDB") // your database name
+    console.log("MongoDB connected 🔥")
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+connectDB()
 async function start(){
 try{
 await client.connect();
