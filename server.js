@@ -207,3 +207,7 @@ app.post("/escort/upload-videos/:id", async (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
+app.post("/callback", (req, res) => {
+  console.log(req.body)
+  res.send("ok")
+})
