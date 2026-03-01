@@ -1,18 +1,3 @@
-const express = require("express");
-const cors = require("cors");
-require("dotenv").config();
-
-const app = express();
-
-app.use(cors());
-app.use(express.json());
-
-app.get("/", (req, res) => {
-  res.send("API working 🚀");
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on port " + PORT));
 require("dotenv").config()
 
 const mongoose = require("mongoose")
@@ -218,11 +203,3 @@ app.post("/escort/upload-videos/:id", async (req, res) => {
 
 // ============================
 // START SERVER
-// ============================
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
-app.post("/callback", (req, res) => {
-  console.log(req.body)
-  res.send("ok")
-})
