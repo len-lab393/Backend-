@@ -1,3 +1,7 @@
+const express = require("express");
+const router = express.Router();
+
+module.exports = router;
 const axios = require("axios");
 
 const SHORTCODE = process.env.SHORTCODE;
